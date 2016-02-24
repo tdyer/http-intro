@@ -12,37 +12,71 @@ By the end of this, students should be able to:
 -   Identify the different parts of a response
 -   Make web request outside the browser using `curl`
 
-## Instructions
-
-Read this document entirely. Follow any links and study their content. Readings
-and activities are **required** unless otherwise indicated.
-
 ## HTTP
 
 HTTP is a protocol - a system of rules - that determines how documents are
 transferred from one place to another. Among other things, it defines the format
 of the messages passed between *clients* and *servers*.
 
-"Clients" send *requests* and receive *responses*. Examples include browsers
-(like Chrome, Safari, or Firefox) and other programs like
+#### HTTP Clients
+
+Send *requests* and receive *responses*. Examples include browsers
+(like __Chrome__, __Safari__, or __Firefox__) and other programs like
+[`httpie`](https://github.com/jkbrzt/httpie), 
 [`curl`](http://curl.haxx.se/docs/) and
 [`wget`](http://www.gnu.org/software/wget/manual/wget.html).
 
-"Servers" receive requests and send responses. Examples are more complex, since
-there are different kinds of servers. There are application servers, which work
-in Node or Ruby to generate documents using those languages, and there are web
-servers like [Apache](http://httpd.apache.org/), [nginx](http://nginx.com/), and
-[lighttpd](https://www.lighttpd.net). The word "server" is also used to describe
-the machine that these programs run on. In this document, the latter is what we
-mean when we say "server", as in this diagram:
+#### HTTP Servers
+Receive requests and send responses. 
 
-> ![http-xkcd](https://cloud.githubusercontent.com/assets/388761/12621764/0ffb527e-c4f0-11e5-87ae-d597e3835fcd.png)
-> [Symfony and HTTP Fundamentals (The Symfony Book)](http://symfony.com/doc/current/book/http_fundamentals.html)
+There are WEB/HTTP servers like [Apache](http://httpd.apache.org/), [nginx](http://nginx.com/),[lighttpd](https://www.lighttpd.net) and the WEBRick Ruby HTTP Server.
 
-1.  A client sends a request to a server.
-1.  The server processes the request.
-1.  The response gets sent back to the client.
-1.  The client processes the response.
+> ![http request/response](img/HTTP_request.png)
+
+1.  A HTTP Client sends a HTTP Request to a server machine that is running a HTTP Server on a specific port.
+1.  The HTTP Server processes the HTTP Request.
+1.  The HTTP Server forms a HTTP Response that gets sent back to the HTTP Client.
+1.  The HTTP Client processes the HTTP Response.
+
+We'll see how this works now.
+
+## We Do
+
+
+* Create a file, `index.html`.
+
+```html <html>
+  <title>Hello World</title>
+  <body>
+    <h1>Hello World</h1>
+  </body>
+</html>
+```
+
+* Let's create an alias for command to run 
+the built-in Ruby __WEBRick__ HTTP Server.
+
+Add this to the .bashrc file in your HOME directory.  
+
+```bash
+# Run a ruby server, WEBRick, on port 5000
+alias rubys="ruby -run -e httpd . -p5000"
+```
+
+* Let's run the __WEBRick__ HTTP Server.  
+
+```bash
+	$ rubys
+```
+
+* Send a Client/Browser HTTP Request to the Server in Chrome Browser.
+
+`http://localhost:5000/index.html`
+
+## You Do
+
+* Create a file, `person.html` that will show a person's name, address, age and gender.
+* Access this using the Chrome browser.
 
 ## URLs
 
@@ -52,67 +86,100 @@ with? Both of these questions are answered by *uniform resource locator (URL)*.
 > ![URL](https://cloud.githubusercontent.com/assets/388761/12622184/2c0143dc-c4f2-11e5-84af-55f723dd6639.png)
 > unkown source
 
+* Note that the server/host above is a machine that is listening for HTTP Request on the internet. It has a domain name that is mapped to a specific IP address.
+* This server machine has a HTTP Server, (apache, nginx,...), running on it that is listening on a specific, __port__. The default __port__ is 80 for HTTP.
+
+
+
 ## HTTP Verbs
 
-A request has two parts: a URL and a verb. A request without both is incomplete.
+A HTTP Request has couple of parts. It MUST have at least a URL and a HTTP Verb. A request without both is incomplete.
+
+![HTTP Verbs](./img/HTTP_Verbs.jpg)
 
 By default, the browser issues GET requests when you type a URL into the address
-bar and press `enter`. When you submit forms, the browser typically issues a
+bar and press `enter`. 
+
+When you submit forms, the browser typically issues a
 POST request.
+
 
 -   [A Beginner’s Guide to HTTP and REST - Envato Tuts+ Code Tutorial](http://code.tutsplus.com/tutorials/a-beginners-guide-to-http-and-rest--net-16340)
 -   [HTTP Methods for RESTful Services](http://www.restapitutorial.com/lessons/httpmethods.html)
 
 ## Make a Request
 
-Make a request using the browser. Go to [Google](https://www.google.com). When
-you clicked this link, the browser made a GET request to Google's server. We
-often describe requests like this:
+Let's use a command that will allow us to see __exactly__ what's happening when during the HTTP Request/Response cycle.
 
-```txt
-GET https://www.google.com/
+This command acts just like a Browser, sending and recieving HTTP Requests and Responses.
+
+#### curl
+
+`curl` is a HTTP Client that is command line utililty that will submit a HTTP Request and receive a HTTP Response.
+
+```bash
+$ curl -v  http://localhost:5000/index.html 
 ```
 
-If we know we're working with a particular server, we might shorten abbreviate
-it as follows. For example, if Google had API documentation that described
-requests you could make to it's server, that documentation might say instead:
+Let's look at what curl shows us.
 
-```txt
-GET /
+#### HTTP Request
+
+```
+> GET /index.html HTTP/1.1                                                      
+> Host: localhost:5000                                                          
+> User-Agent: curl/7.43.0                                                       
+> Accept: */*  
 ```
 
-In other words, API docs often only describe the URI instead of the full URL.
+The first line of every request is the HTTP Method, URL and HTTP Version.
 
-The response your browser receives from Google is an HTML document the browser
-parses and renders. What would happen if you made the same get request outside
-of the browser?
-
-Try this in your terminal:
-
-```sh
-curl --request GET https://www.google.com
+```
+	GET /index.html HTTP/1.1                                                      
 ```
 
-What did you see?
+The next three lines are HTTP Request Header.
 
-## Responses & Resources
+```
+Host: localhost:5000                                                          
+User-Agent: curl/7.43.0                                                       
+Accept: */*  
+```
 
-Servers send responses, and those responses contain resource representations.
+* This says that the server __HOST__ is `localhost:5000`.  
+* The type of HTTP Client, __User-Agent__, is `curl/7.43.0` the curl command version 7.43.0.  
+* This HTTP Client will accept, __Accept__, any type of response from the server. _For example, it will accept HTML, XML, JSON, images, ... representations from the server._
+* There are many more parts of the HTTP Request Header, some more used than others.
 
-Technically, the term "resource" refers to an abstraction that your application
-uses; depending on what the application does, a resource might be a 'Car', a
-'Person', a 'User', or an 'Order Cart'.
+#### HTTP Response
 
-A single resource can be represented in multiple different ways by the server,
-including a HTML, JSON, PDF files, and images. What we really mean when we say
-"resource" above is a specific representation of a resource.
+The HTTP Response is formed by the HTTP Server, in our case the __WEBRick__ HTTP Server. 
 
-You may think of resources as the documents that are returned (usually HTML or
-JSON) as part of the response body.
+_A more common server would be [Apache](http://httpd.apache.org/), [nginx](http://nginx.com/), and
+[lighttpd](https://www.lighttpd.net)._
 
-## Response Statuses
+We can see that the first part of the HTTP Reponse is the headers.
 
+```
+< HTTP/1.1 200 OK                                                               
+< Etag: 44f2fa-58-56cdbf8c                                                      
+< Content-Type: text/html                                                       
+< Content-Length: 88                                                            
+< Last-Modified: Wed, 24 Feb 2016 14:34:52 GMT                                  
+< Server: WEBrick/1.3.1 (Ruby/2.3.0/2015-12-25)                                 
+< Date: Wed, 24 Feb 2016 15:03:19 GMT                                           
+< Connection: Keep-Alive   
+```
+
+* The first line, `HTTP/1.1 200 OK`, shows the HTTP Version followed by the HTTP Status.
+* The `Content-Type` shows us that the content representation format is HTML
+* The `Content-Length` is length in characters of the content created by and returned by the HTTP Server.
+* There are many more parts of the HTTP Response Header.
+
+##### Response Statuses
 What are HTTP status codes?
+
+Let's take a look at a couple of HTTP Status codes.
 
 -   [List of HTTP status codes](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
 -   [HTTP Status Codes in a Nutshell](https://twitter.com/stevelosh/status/372740571749572610)
